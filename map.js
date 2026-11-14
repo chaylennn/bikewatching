@@ -78,7 +78,10 @@ map.on('load', async () => {
 
     let stations = jsonData.data.stations;
     console.log('Stations Array:', stations);
-
+    
+    // Fetch BlueBikes traffic data
+    const trips = await d3.csv('https://dsc106.com/labs/lab07/data/bluebikes-traffic-2024-03.csv');
+    console.log('Trips:', trips);
     // Append circles to the SVG for each station
     const circles = svg
       .selectAll('circle')
