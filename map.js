@@ -115,13 +115,21 @@ map.on('load', async () => {
       .domain([0, d3.max(stations, (d) => d.totalTraffic)])
       .range([0, 25]);
 
-    // Append circles to the SVG for each station
+        // Append circles to the SVG for each station
     const circles = svg
       .selectAll('circle')
       .data(stations)
       .enter()
       .append('circle')
-      .attr('r', (d) => radiusScale(d.totalTraffic)); // Radius based on traffic
+      .attr('r', (d) => radiusScale(d.totalTraffic)) // Radius based on traffic
+      .each(function (d) {
+        // Add <title> for browser tooltips
+        d3.select(this)
+          .append('title')
+          .text(
+            `${d.totalTraffic} trips (${d.departures} departures, ${d.arrivals} arrivals)`,
+          );
+      });
     // Function to update circle positions when the map moves/zooms
     function updatePositions() {
       circles
