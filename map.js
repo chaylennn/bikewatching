@@ -25,14 +25,14 @@ map.on('load', async () => {
   });
 
   // Draw the bike lanes
-  map.addLayer({
+    map.addLayer({
     id: 'bike-lanes',
     type: 'line',
     source: 'boston_route',
     paint: {
-      'line-color': 'green',
-      'line-width': 3,
-      'line-opacity': 0.4,
+        'line-color': '#32D400', // bright green
+        'line-width': 5,
+        'line-opacity': 0.6,
     },
-  });
+    });
 });
