@@ -11,7 +11,7 @@ body {
 
 #map {
   width: 100%; /* Adjust width to your desired size */
-  height: 100%; /* Adjust height to your desired size */
+  height: 75vh; /* Leaves room for the legend below */
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Optional: subtle shadow for effect */
   border-radius: 8px; /* Optional: rounded corners */
 }
@@ -24,7 +24,9 @@ body {
   pointer-events: none;
 }
 
-#map svg circle {
+/* Shared color variables for circles and legend */
+#map svg circle,
+.legend > div {
   --color-departures: steelblue;
   --color-arrivals: darkorange;
   --color: color-mix(
@@ -32,9 +34,39 @@ body {
     var(--color-departures) calc(100% * var(--departure-ratio)),
     var(--color-arrivals)
   );
+}
+
+#map svg circle {
   fill: var(--color);
   fill-opacity: 60%;
   stroke: white;
   stroke-width: 1;
   pointer-events: auto;
+}
+
+/* Legend */
+.legend {
+  display: flex;
+  align-items: center;
+  gap: 1.5em;
+  margin-block: 1em;
+  width: 100%;
+}
+
+.legend-label {
+  color: gray;
+}
+
+.legend > div {
+  display: flex;
+  align-items: center;
+  gap: 0.4em;
+}
+
+.legend > div::before {
+  content: '';
+  width: 1em;
+  height: 1em;
+  border-radius: 50%;
+  background: var(--color);
 }
