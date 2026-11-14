@@ -40,6 +40,9 @@ const bikeLaneStyle = {
 // Current time filter (-1 means no filtering)
 let timeFilter = -1;
 
+// Map departure ratio (0 to 1) to 3 discrete values: mostly arrivals, balanced, mostly departures
+let stationFlow = d3.scaleQuantize().domain([0, 1]).range([0, 0.5, 1]);
+
 // One bucket per minute of the day (1440 minutes)
 let departuresByMinute = Array.from({ length: 1440 }, () => []);
 let arrivalsByMinute = Array.from({ length: 1440 }, () => []);
@@ -175,6 +178,9 @@ map.on('load', async () => {
       .enter()
       .append('circle')
       .attr('r', (d) => radiusScale(d.totalTraffic)) // Radius based on traffic
+      .style('--departure-ratio', (d) =>
+        d.totalTraffic ? stationFlow(d.departures / d.totalTraffic) : 0.5,
+      )
       .each(function (d) {
         // Add <title> for browser tooltips
         d3.select(this)
@@ -221,7 +227,7 @@ map.on('load', async () => {
       updateScatterPlot(timeFilter);
     }
 
-    // Resize circles based on the selected time
+    // Resize and recolor circles based on the selected time
     function updateScatterPlot(timeFilter) {
       // Recompute station traffic using the minute buckets
       const filteredStations = computeStationTraffic(stations, timeFilter);
@@ -229,11 +235,14 @@ map.on('load', async () => {
       // Bigger circles when filtering, since there are fewer trips
       timeFilter === -1 ? radiusScale.range([0, 25]) : radiusScale.range([3, 50]);
 
-      // Update the scatterplot by adjusting the radius of circles
+      // Update circle sizes and colors
       circles
         .data(filteredStations, (d) => d.short_name) // Ensure D3 tracks elements correctly
         .join('circle')
         .attr('r', (d) => radiusScale(d.totalTraffic)) // Update circle sizes
+        .style('--departure-ratio', (d) =>
+          d.totalTraffic ? stationFlow(d.departures / d.totalTraffic) : 0.5,
+        )
         .select('title') // Keep tooltips in sync with the filter
         .text(
           (d) => `${d.totalTraffic} trips (${d.departures} departures, ${d.arrivals} arrivals)`,
