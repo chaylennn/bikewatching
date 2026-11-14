@@ -37,6 +37,15 @@ const bikeLaneStyle = {
   'line-opacity': 0.6,
 };
 
+// Current time filter (-1 means no filtering)
+let timeFilter = -1;
+
+// Convert minutes since midnight to HH:MM AM/PM
+function formatTime(minutes) {
+  const date = new Date(0, 0, 0, 0, minutes); // Set hours & minutes
+  return date.toLocaleString('en-US', { timeStyle: 'short' }); // Format as HH:MM AM/PM
+}
+
 map.on('load', async () => {
   // Add Boston bike lanes data source
   map.addSource('boston_route', {
@@ -73,18 +82,16 @@ map.on('load', async () => {
 
     // Await JSON fetch
     jsonData = await d3.json(jsonurl);
-
     console.log('Loaded JSON Data:', jsonData); // Log to verify structure
 
     let stations = jsonData.data.stations;
     console.log('Stations Array:', stations);
-    
+
     // Fetch BlueBikes traffic data
     const trips = await d3.csv('https://dsc106.com/labs/lab07/data/bluebikes-traffic-2024-03.csv');
     console.log('Trips:', trips);
-    // Append circles to the SVG for each station
-    
-// Count departures per station
+
+    // Count departures per station
     const departures = d3.rollup(
       trips,
       (v) => v.length,
@@ -106,8 +113,7 @@ map.on('load', async () => {
       station.totalTraffic = station.arrivals + station.departures;
       return station;
     });
-
-        console.log('Stations with traffic:', stations);
+    console.log('Stations with traffic:', stations);
 
     // Square root scale so circle AREA matches traffic
     const radiusScale = d3
@@ -115,7 +121,7 @@ map.on('load', async () => {
       .domain([0, d3.max(stations, (d) => d.totalTraffic)])
       .range([0, 25]);
 
-        // Append circles to the SVG for each station
+    // Append circles to the SVG for each station
     const circles = svg
       .selectAll('circle')
       .data(stations)
@@ -130,6 +136,7 @@ map.on('load', async () => {
             `${d.totalTraffic} trips (${d.departures} departures, ${d.arrivals} arrivals)`,
           );
       });
+
     // Function to update circle positions when the map moves/zooms
     function updatePositions() {
       circles
@@ -145,6 +152,29 @@ map.on('load', async () => {
     map.on('zoom', updatePositions); // Update during zooming
     map.on('resize', updatePositions); // Update on window resize
     map.on('moveend', updatePositions); // Final adjustment after movement ends
+
+    // Slider elements
+    const timeSlider = document.getElementById('time-slider');
+    const selectedTime = document.getElementById('selected-time');
+    const anyTimeLabel = document.getElementById('any-time');
+
+    // Update the time display when the slider moves
+    function updateTimeDisplay() {
+      timeFilter = Number(timeSlider.value); // Get slider value
+
+      if (timeFilter === -1) {
+        selectedTime.textContent = ''; // Clear time display
+        anyTimeLabel.style.display = 'block'; // Show "(any time)"
+      } else {
+        selectedTime.textContent = formatTime(timeFilter); // Display formatted time
+        anyTimeLabel.style.display = 'none'; // Hide "(any time)"
+      }
+
+      // Trigger filtering logic which will be implemented in the next step
+    }
+
+    timeSlider.addEventListener('input', updateTimeDisplay);
+    updateTimeDisplay();
   } catch (error) {
     console.error('Error loading JSON:', error); // Handle errors
   }
